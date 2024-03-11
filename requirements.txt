@@ -192,3 +192,4 @@ xlrd==2.0.1
 XlsxWriter==3.1.9
 yarl==1.9.4
 zipp==3.17.0
+st-supabase-connection==0.23.10
