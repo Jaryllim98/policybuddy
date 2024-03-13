@@ -7,10 +7,11 @@ import tempfile
 import json
 import re
 import fitz  # PyMuPDF
+from openai import OpenAI
 from langchain_community.document_loaders import DirectoryLoader
 from policybuddy_cli import (
     generate_system_prompt, llm_generate_research_plan, llm_generate_pdf_search_queries,
-    execute_search_queries, generate_preliminary_report_from_perplexity, refine_research_plan_with_user_feedback,
+    execute_pplx_search, generate_preliminary_report_from_perplexity, refine_research_plan_with_user_feedback,
     llm_generate_search_queries, execute_perplexity_queries_and_update_dict,
     llm_generate_pdf_search_queries_from_report, execute_google_pdf_search_queries_dict,
     enhance_preliminary_report_with_vector_search, 
@@ -19,6 +20,15 @@ from policybuddy_cli import (
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
 SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Initialize OpenAI and Perplexity clients
+OPENAI_API_KEY = st.secrets["OPENAI_APIKey"]
+PERPLEXITY_API_KEY = st.secrets["PERPLEXITY_APIKey"]
+SERPER_API_KEY = st.secrets["SERPER_APIKey"]
+
+
+openai_client = OpenAI(api_key=OPENAI_API_KEY)
+perplexity_client = OpenAI(api_key=PERPLEXITY_API_KEY, base_url="https://api.perplexity.ai")
 
 
 def fetch_and_store_pdf_locally(url):
@@ -104,14 +114,6 @@ def collect_user_context():
 
 def main():
     st.title("Research Assistant")
-
-    openai_api_key = st.text_input("OpenAI API Key", type="password")
-    perplexity_api_key = st.text_input("Perplexity API Key", type="password")
-    serper_api_key = st.text_input("Serper API Key", type="password")
-
-    os.environ["OPENAI_API_KEY"] = openai_api_key
-    os.environ["PERPLEXITY_API_KEY"] = perplexity_api_key
-    os.environ["SERPER_API_KEY"] = serper_api_key
 
     user_context = collect_user_context()
 
